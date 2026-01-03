@@ -12,17 +12,26 @@ function Header() {
 
 
     return(
-        <header className="">
+        <header className="flex items-center justify-between p-4">
             <Link href="/dashboard" className="font-medium uppercase tracking-widest">ToConnect</Link>
 
 
-            <div>
+            <div className="flex items-center gap-2">
                 <Authenticated>
+                    {!isDashboard && (
+                        <Link href="/dashboard">
+                            <Button variant="outline">Dashboard</Button>
+                        </Link>
+                    )}
                     <UserButton />
                 </Authenticated>
 
                 <Unauthenticated>
-                    <SignInButton>
+                    <SignInButton
+                    mode="modal"
+                    forceRedirectUrl="/dashboard"
+                    signUpForceRedirectUrl="/dashboard"
+                    >
                         <Button variant="outline">Sign in</Button>
                     </SignInButton>
                 </Unauthenticated>
