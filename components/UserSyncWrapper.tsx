@@ -3,7 +3,7 @@
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/clerk-react";
 import { useMutation } from "convex/react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { LoadingSpinner } from "./LoadingSpinner";
 import streamClient from "@/lib/stream";
 import { createToken } from "../actions/createToken";
@@ -63,6 +63,32 @@ function UserSyncWrapper({ children }: { children: React.ReactNode }) {
         }
 
     }, [createOrUpdateUser, user])
+
+    const disconnectUser = useCallback(async () => {
+        try {
+            await streamClient.disconnectUser();
+        } catch (error) {
+            console.error("Failed to disconnect user:", error);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!isUserLoaded) return;
+
+        if (user) {
+            syncUser();
+        } else {
+            disconnectUser();
+            setIsLoading(false);
+        }
+
+        //clean up function
+        return () => {
+            if (user) {
+            disconnectUser()
+            }
+        };
+    }, [user, isUserLoaded, syncUser, disconnectUser])
 
 
     if (!isUserLoaded || !isLoading) {
