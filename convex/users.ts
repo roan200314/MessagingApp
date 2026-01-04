@@ -44,7 +44,14 @@ export const searchUsers = query({
             if (!searchTerm.trim()) return [];
 
             const normalizedSearch = searchTerm.toLowerCase().trim();
-
             const allUsers = await ctx.db.query("users").collect();
-        }
+
+            return allUsers
+            .filter(
+                (user) =>
+                  user.name.toLowerCase().includes(normalizedSearch) ||
+                  user.email.toLowerCase().includes(normalizedSearch)
+            )
+                .slice(0, 20);
+        },
 })
