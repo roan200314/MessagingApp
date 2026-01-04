@@ -8,9 +8,7 @@ if (!process.env.STREAM_API_SECRET_KEY) {
     throw new Error("STREAM_API_SECRET_KEY is not set");
 }
 
-const streamClient = StreamChat.getInstance(
+export const serverClient = StreamChat.getInstance(
     process.env.NEXT_PUBLIC_STREAM_API_KEY,
     process.env.STREAM_API_SECRET_KEY
 );
-
-export default streamClient;

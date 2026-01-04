@@ -5,6 +5,8 @@ import { useUser } from "@clerk/clerk-react";
 import { useMutation } from "convex/react";
 import { useState, useCallback } from "react";
 import { LoadingSpinner } from "./LoadingSpinner";
+import streamClient from "@/lib/stream";
+import { createToken } from "../actions/createToken";
 
 function UserSyncWrapper({ children }: { children: React.ReactNode }) {
 
@@ -21,6 +23,14 @@ function UserSyncWrapper({ children }: { children: React.ReactNode }) {
         try {
            setIsLoading(true);  
            setError(null);
+           const tokenProvider = async () => {
+            if (!user?.id) {
+                throw new Error("User isn't authenticated");
+            }
+
+            const token = await createToken(user.id);
+            return token;
+           }
            
            await createOrUpdateUser({
             userId: user.id,
@@ -28,6 +38,23 @@ function UserSyncWrapper({ children }: { children: React.ReactNode }) {
             email: user.emailAddresses[0].emailAddress || "Unknown user",
             imageUrl: user.imageUrl || "",
            });
+
+            //CONNECT USER TO STREAM
+         await streamClient.connectUser(
+            {
+                id: user.id,
+                name:
+                user.fullName ||
+                user.firstName ||
+                user.emailAddresses[0]?.emailAddress ||
+                "Unkown user",
+                image: user.imageUrl || "", 
+            },
+            tokenProvider
+         );
+
+
+
         } catch (error) {
             console.error("Failed to sync user:", error);
             setError(error instanceof Error ? error.message : "Failed to sync user");
