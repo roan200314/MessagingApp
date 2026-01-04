@@ -1,0 +1,73 @@
+"use client"
+
+import { api } from "@/convex/_generated/api";
+import { useUser } from "@clerk/clerk-react";
+import { useMutation } from "convex/react";
+import { useState, useCallback } from "react";
+import { LoadingSpinner } from "./LoadingSpinner";
+
+function UserSyncWrapper({ children }: { children: React.ReactNode }) {
+
+    const { user, isLoaded: isUserLoaded } = useUser();
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const createOrUpdateUser = useMutation(api.users.upsertUser);
+
+
+    const syncUser = useCallback(async () => {
+        if(!user?.id) return;
+
+        try {
+           setIsLoading(true);  
+           setError(null);
+           
+           await createOrUpdateUser({
+            userId: user.id,
+            name: user.fullName || "",
+            email: user.emailAddresses[0].emailAddress || "Unknown user",
+            imageUrl: user.imageUrl || "",
+           });
+        } catch (error) {
+            console.error("Failed to sync user:", error);
+            setError(error instanceof Error ? error.message : "Failed to sync user");
+        } finally {
+            setIsLoading(false);
+        }
+
+    }, [createOrUpdateUser, user])
+
+
+    if (!isUserLoaded || !isLoading) {
+        return(
+            <LoadingSpinner 
+            size="lg"
+            message={!isUserLoaded ? " Loading... " : "Syncing user data..."}
+            className="min-h-screen"
+            />
+        );
+    }
+
+
+
+    if (error) {
+        <div className="flex flex-col items-center justify-center bg-white px-6 text-center">
+            <p className="text-red-600 text-lg font-semibold mb-2">
+                Something went wrong
+            </p>
+
+            <p className="text-gray-600 text-sm mb-4">
+                {error}
+            </p>
+
+            <p className="text-gray-500 text-sm">
+                Try refreshing the page. If the problem continues, please contact support.
+            </p>
+        </div>
+
+    }
+
+    return (<div>{children}</div>)
+}
+
+export default UserSyncWrapper;

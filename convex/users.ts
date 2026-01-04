@@ -15,7 +15,7 @@ export const getUserByClerkUserId = query({
 });
 
 //upsert/ update user
-export const UpsertUser = mutation({
+export const upsertUser = mutation({
     args: {
         userId: v.string(),
         name: v.string(),
